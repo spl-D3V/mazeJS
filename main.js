@@ -7,34 +7,35 @@ let wallSize = 40;
 let ncols = Math.floor(hSize/wallSize);
 let nrows = Math.floor(vSize/wallSize);
 let player;
+let enemy;
+let heart;
+let skull;
+let mazeCanvas;
 let playerImg;
 let targetImg;
 let bg;
-let mazeCanvas;
-let heart;
 let heartImg;
-let fireImg;
+let skullImg;
 let counter = 35;
-let isDead = false;
 let tiempo;
 let targetReached = false;
+let isDead = false;
 
 function preload(){
     bg = loadImage('./fondo.jpg');
     playerImg = loadImage('./jolmos.png');
     targetImg = loadImage('./pui.png');
     heartImg = loadImage('./corazon.png');
-    fireImg = loadImage('./fuego.jpg');
+    skullImg = loadImage('./skull.png');
 }
 function setup(){
     const can = createCanvas(hSize+1, vSize+1);
+    mazeCanvas = createGraphics(hSize, vSize);
     can.parent(document.getElementById("canvasContainer"));
     tiempo = document.getElementById("tiempo");
-    mazeCanvas = createGraphics(hSize, vSize);
     heartImg.resize(150,0);
-    fireImg.resize(hSize, 0);
-    heart = new Heart((ncols-1)*wallSize, (nrows-1)*wallSize, heartImg);
-    player = new Player(0, 0, ncols-1, nrows-1, playerImg);
+    player = new Player(0, 0, playerImg);
+    enemy =  new Player(ncols-1, nrows-1, targetImg);
     noFill();
     generateGrid();
     generateMaze();
@@ -42,18 +43,31 @@ function setup(){
 }
 function draw(){
     image(mazeCanvas, 0, 0);
-    player.show();
-    targetReached = player.reachTarget();
-    if(targetReached){
-        heart.show();
-    }
-    if(!targetReached && frameCount%60 === 0){
-        counter--;
-        isDead = counter === 0;
-    }
+    targetReached = player.reachTarget(enemy);
     if(isDead){
-        image(fireImg, 0, 0);
-        noLoop();
+        if(!skull){
+            skull = new Reward(player.x*wallSize, player.y*wallSize, skullImg);
+        }
+        skull.show();
+    }else{
+        player.show();
+        enemy.show();
+    }
+    if(targetReached){
+        if(!heart){
+            heart = new Reward(player.x*wallSize, player.y*wallSize, heartImg);
+        }
+        heart.show();
+    }else{
+        if(frameCount%60 === 0 && !isDead){
+            counter--;
+            isDead = counter === 0;
+        }
+        if(frameCount%5 === 0 && !isDead){
+            let idx = index(enemy.x, enemy.y);
+            let walls = maze.find(c => c.idx === idx).wall;
+            enemy.randomMove(walls);
+        }
     }
     tiempo.innerText = counter;
 }
@@ -106,7 +120,6 @@ function mazeDraw(mazeBuffer){
     mazeBuffer.strokeWeight(4);
     mazeBuffer.stroke(0);
     maze.forEach(c => c.show(mazeBuffer));
-    mazeCanvas.image(targetImg, (ncols-1)*wallSize, (nrows-1)*wallSize);
     image(mazeBuffer, 0, 0);
 }
 function keyPressed(){

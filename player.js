@@ -1,10 +1,7 @@
 class Player {
-    constructor(x, y, targetX, targetY, img){
+    constructor(x, y, img){
         this.x = x;
         this.y = y;
-        this.goal = false;
-        this.targetX = targetX;
-        this.targetY = targetY;
         this.img = img;
     }
 }
@@ -23,9 +20,29 @@ Player.prototype.move = function(x, y, walls){
         this.y += y;
     }
 }
-Player.prototype.reachTarget = function(){
-    this.goal = (this.x === this.targetX) && (this.y === this.targetY);
-    return this.goal;
+Player.prototype.randomMove = function(walls){
+    let direction = Math.floor(4*Math.random());
+    switch(direction){
+        case 0:{
+            this.move(0, -1, walls);
+            break;
+        }
+        case 1:{
+            this.move(1, 0, walls);
+            break;
+        }
+        case 2:{
+            this.move(0, 1, walls);
+            break;
+        }
+        case 3:{
+            this.move(-1, 0, walls);
+            break;
+        }
+    }    
+}
+Player.prototype.reachTarget = function(target){
+    return (this.x === target.x) && (this.y === target.y);
 }
 Player.prototype.show = function(){
     let x = this.x*wallSize;
@@ -33,7 +50,7 @@ Player.prototype.show = function(){
     image(this.img, x, y);
 }
 
-class Heart{
+class Reward{
     constructor(xpixel, ypixel, img){
         this.x = xpixel;
         this.y = ypixel;
@@ -42,7 +59,7 @@ class Heart{
         this.img = img;
     }
 }
-Heart.prototype.show = function(){
+Reward.prototype.show = function(){
     this.x += this.kx*10;
     this.y += this.ky*5;
     if(this.x < 0 || (this.x+50) > hSize){
@@ -54,5 +71,4 @@ Heart.prototype.show = function(){
         this.ky *= -1;
     }
     image(this.img, this.x, this.y);
-
 }
